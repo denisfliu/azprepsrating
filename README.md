@@ -8,3 +8,6 @@
 ## Individuals
 1. Run individualcollect.py
 2. Enter url of individual player (e.g. https://www.azpreps365.com/teams/tennis-boys/1784-corona-sol/117772-varsity/roster/585402)
+## Transfer to Excel 365
+1. Data -> Get Data -> From File -> From Text/CSV
+2. Import data.csv
