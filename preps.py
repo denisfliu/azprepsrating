@@ -3,6 +3,9 @@ from requests import get
 from requests.exceptions import RequestException
 from contextlib import closing
 from bs4 import BeautifulSoup 
+"""
+DO DOUBLES NAMES AND PersONS NAMES
+"""
 def simple_get(url):
     """
     Attempts to get the content at `url` by making an HTTP GET request.
@@ -29,10 +32,17 @@ def is_good_response(resp):
     return (resp.status_code == 200 
             and content_type is not None 
             and content_type.find('html') > -1)
-def get_name(str):
-    word_list = str.split()
-    return word_list[-2] + ' ' + word_list[-1]
 
+def get_doubles_partner(str):
+    word_list = str.split(' ')
+    if len(word_list) > 3:
+        return word_list[-2] + ' ' + word_list[-1]
+    return ''
+'''
+def get_name(str):
+    word_list = str.split(' ')
+    return word_list[:2]
+'''
 def log_error(e):
     """
     It is always a good idea to log errors. 
@@ -44,14 +54,16 @@ def log_error(e):
 if __name__ == "__main__":
     raw_html = simple_get('http://www.azpreps365.com/teams/tennis-boys/1784-corona-sol/117772-varsity/roster/585399')
     html = BeautifulSoup(raw_html, 'html.parser')
-
+    player = html.find('h4', class_ = 'title is-3').get_text().strip()
     a = []
     b = []
-    for i in html.find_all('div', class_ = 'card-content'):
+    for i in html.find_all(lambda tag: tag.name == 'div' and 
+                                   tag.get('class') == ['card']):
+        dubs = get_doubles_partner(i.find('div', class_ = 'card-header-title').get_text().strip())
         for j in i.find_all(lambda tag: tag.name == 'div' and 
                                    tag.get('class') == ['column']):
             a_tags = j.select('a')
-            a.append(', '.join([k.get_text().strip().replace('											', '').replace('\n', ' ') for k in a_tags[:len(a_tags) - 1]]))
+            a.append(dubs + ', ' + ', '.join([k.get_text().strip().replace('											', '').replace('\n', ' ') for k in a_tags[:len(a_tags) - 1]]))
         for j in i.find_all('div', class_ = 'column is-3 result'):
             b.append(j.get_text().strip())
     
@@ -71,4 +83,4 @@ if __name__ == "__main__":
     with open('data.csv', 'w') as csvfile:
         for name, score in zip(a, b):
             score = score.replace('-', ',')
-            csvfile.write(f'{name}, {score}\n')   
+            csvfile.write(f'{player}, {name}, {score}\n')   
