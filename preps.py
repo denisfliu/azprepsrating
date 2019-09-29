@@ -3,9 +3,7 @@ from requests import get
 from requests.exceptions import RequestException
 from contextlib import closing
 from bs4 import BeautifulSoup 
-"""
-DO DOUBLES NAMES AND PersONS NAMES
-"""
+
 def simple_get(url):
     """
     Attempts to get the content at `url` by making an HTTP GET request.
@@ -51,36 +49,45 @@ def log_error(e):
     """
     print(e)
 
-if __name__ == "__main__":
-    raw_html = simple_get('http://www.azpreps365.com/teams/tennis-boys/1784-corona-sol/117772-varsity/roster/585399')
-    html = BeautifulSoup(raw_html, 'html.parser')
-    player = html.find('h4', class_ = 'title is-3').get_text().strip()
+def getIndividuals(html):
     a = []
-    b = []
-    for i in html.find_all(lambda tag: tag.name == 'div' and 
-                                   tag.get('class') == ['card']):
-        dubs = get_doubles_partner(i.find('div', class_ = 'card-header-title').get_text().strip())
-        for j in i.find_all(lambda tag: tag.name == 'div' and 
-                                   tag.get('class') == ['column']):
-            a_tags = j.select('a')
-            a.append(dubs + ', ' + ', '.join([k.get_text().strip().replace('											', '').replace('\n', ' ') for k in a_tags[:len(a_tags) - 1]]))
-        for j in i.find_all('div', class_ = 'column is-3 result'):
-            b.append(j.get_text().strip())
-    
-    '''
-    for i, p in enumerate(html.select('p')):
-        a.append(p.text)  
-    del a[0:16]
-    scores = []
-    for i in html.find_all('div', class_ = 'column is-3 result'):
-        scores.append(i.get_text())
-    index = 0
-    for i in range(0, len(a)):
-        if i % 4 == 3:
-            a.insert(i, scores[index])
-            index = index + 1
-    '''
-    with open('data.csv', 'w') as csvfile:
+    for i in html.find(lambda tag: tag.name == 'div' and tag.get('class') == ['content']).find_all('a', href=True):
+        a.append(i['href'])
+    return a
+
+def add_all(url, csvfile):
+    html1 = BeautifulSoup(simple_get(url), 'html.parser')
+    a = []
+    for i in html1.find_all('a', class_ = 'media-content'):
+        a.append('http://azpreps365.com' + i['href'])
+    for i in a:
+        html2 = BeautifulSoup(simple_get(i), 'html.parser')
+        surl = 'http://azpreps365.com' + html2.find('div', class_ = 'tabs').find_all('li', class_ = 'menu-item')[1].a['href']
+        html3 = BeautifulSoup(simple_get(surl), 'html.parser')
+        rurl = 'http://azpreps365.com' + html3.find_all(lambda tag: tag.name == 'li' and tag.get('class') == [''])[-1].a['href']
+        print(rurl)
+        add_info(rurl, csvfile)
+def add_info(url, csvfile):
+    htmlf = BeautifulSoup(simple_get(url), 'html.parser')
+    urls = getIndividuals(htmlf)
+    for sites in urls:
+        raw_h = simple_get(sites)
+        if raw_h is None:
+            print(url + ': Invalid Roster')
+            break
+        html = BeautifulSoup(raw_h, 'html.parser')
+        player = html.find('h4', class_ = 'title is-3').get_text().strip()
+        a = []
+        b = []
+        for i in html.find_all(lambda tag: tag.name == 'div' and 
+                                    tag.get('class') == ['card']):
+            dubs = get_doubles_partner(i.find('div', class_ = 'card-header-title').get_text().strip())
+            for j in i.find_all(lambda tag: tag.name == 'div' and 
+                                    tag.get('class') == ['column']):
+                a_tags = j.select('a')
+                a.append(dubs + ', ' + ', '.join([k.get_text().strip().replace('											', '').replace('\n', ' ') for k in a_tags[:len(a_tags) - 1]]))
+            for j in i.find_all('div', class_ = 'column is-3 result'):
+                b.append(j.get_text().strip())
         for name, score in zip(a, b):
             score = score.replace('-', ',')
             csvfile.write(f'{player}, {name}, {score}\n')   
