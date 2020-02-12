@@ -10,6 +10,9 @@
 ## Individuals
 1. Run individualcollect.py
 2. Enter url of individual player (e.g. https://www.azpreps365.com/teams/tennis-boys/1784-corona-sol/117772-varsity/roster/585402)
+## Date
+1. RUn date.py
+2. Enter url of score date (e.g. https://www.azpreps365.com/scores/badminton/varsity/2019-10-28)
 ## Transfer to Excel 365
 1. Data -> Get Data -> From File -> From Text/CSV
 2. Import data.csv
