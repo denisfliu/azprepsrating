@@ -90,4 +90,62 @@ def add_info(url, csvfile):
                 b.append(j.get_text().strip())
         for name, score in zip(a, b):
             score = score.replace('-', ',')
-            csvfile.write(f'{player}, {name}, {score}\n')   
+            csvfile.write(f'{player}, {name}, {score}\n')
+
+def date_collect(url, csvfile):
+    htmlf = BeautifulSoup(simple_get(url), 'html.parser')
+    a = (get_match_links(htmlf))
+    for match in a:
+        raw_h = simple_get(match)
+        if raw_h is None:
+            print(url + ': Invalid Stuff')
+            break
+        html = BeautifulSoup(raw_h, 'html.parser')
+        match_collect(html, csvfile)
+
+def match_collect(html, csvfile):
+    playerh = []
+    playera = []
+    scores = []
+    singles = True
+    for i in html.find_all(lambda tag: tag.name == 'div' and 
+                                    tag.get('class') == ['card']):
+            count = -1
+            for j in i.find_all(lambda tag: tag.name == 'span' and 
+                                    tag.get('class') == ['players']):
+                a_tags = j.find_all('a')
+                h1 = ''
+                a1 = ''
+                for z in a_tags:
+                    count += 1
+                    if (singles):
+                        if (count % 2 == 0):
+                            playerh.append(z.get_text().strip())
+                           # print('even')
+                        else:
+                            playera.append(z.get_text().strip())
+                           # print('odd')
+                    else:
+                        if (count % 4 == 0):
+                            h1 = z.get_text().strip() + ', '
+                        elif (count % 4 == 1):
+                            h1 = h1 + z.get_text().strip()
+                            playerh.append(h1)
+                            h1 = ''
+                        elif (count % 4 == 2):
+                            a1 = z.get_text().strip() + ', '
+                        else:
+                            a1 = a1 + z.get_text().strip()
+                            playera.append(a1)
+                            a1 = ''
+            for j in i.find_all('div', class_ = 'column is-4 has-text-centered set-scores'):
+                scores.append(j.get_text().strip())
+            singles = False
+    for ph, pa, score in zip(playerh, playera, scores):
+        score = score.replace('-', ',')
+        csvfile.write(f'{ph}, {pa}, {score}\n')
+def get_match_links(html):
+    a = []
+    for i in html.find_all(lambda tag: tag.name == 'div' and tag.get('class') == ['result-summary']):
+        a.append('http://azpreps365.com' + i.find('a').get('href'))
+    return a
