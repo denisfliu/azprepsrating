@@ -21,7 +21,6 @@ def simple_get(url):
         log_error('Error during requests to {0} : {1}'.format(url, str(e)))
         return None
 
-
 def is_good_response(resp):
     """
     Returns True if the response seems to be HTML, False otherwise.
@@ -36,11 +35,7 @@ def get_doubles_partner(str):
     if len(word_list) > 3:
         return word_list[-2] + ' ' + word_list[-1]
     return ''
-'''
-def get_name(str):
-    word_list = str.split(' ')
-    return word_list[:2]
-'''
+
 def log_error(e):
     """
     It is always a good idea to log errors. 
@@ -119,7 +114,7 @@ def match_collect(html, csvfile):
                                     tag.get('class') == ['players']):
                     a_tags = k.find_all('a')
                     if not a_tags:
-                        print(":///")
+                        print("Forfeit???")
                     z = ''
                     for stuff in a_tags:
                         if z == '':
@@ -136,7 +131,7 @@ def match_collect(html, csvfile):
                     if (winner[num] == 'is-away'):
                         scores.append(j.get_text().strip())
                     else:
-                        scores.append(j.get_text().strip()[::-1])
+                        scores.append(reverse_order(j.get_text().strip()))
                     num += 1
                 except IndexError:
                     print(':(')
@@ -144,6 +139,12 @@ def match_collect(html, csvfile):
     for ph, pa, score in zip(playerh, playera, scores):
         score = score.replace('-', ',')
         csvfile.write(f'{ph}, {pa}, {score}\n')
+def reverse_order(score):
+    arr = score.split(',')
+    if (len(arr) < 3):
+        return ','.join(arr)[::-1]
+    else:
+        return arr[0][::-1] + ', ' + arr[1][::-1] + ', ' + '-'.join(arr[2].split('-')[::-1])
 def get_match_links(html):
     a = []
     for i in html.find_all(lambda tag: tag.name == 'div' and tag.get('class') == ['result-summary']):
