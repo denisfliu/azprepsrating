@@ -107,39 +107,39 @@ def match_collect(html, csvfile):
     playerh = []
     playera = []
     scores = []
-    singles = True
+    winner = []
+    for i in html.select('div[class*="column is-4 has-text-centered team is-winner"]'):
+        winner.append((i["class"][-1]))
     for i in html.find_all(lambda tag: tag.name == 'div' and 
                                     tag.get('class') == ['card']):
             count = -1
-            for j in i.find_all(lambda tag: tag.name == 'span' and 
+            for j in i.select('div[class*="column is-4 has-text-centered team"]'):
+                count += 1
+                for k in j.find_all(lambda tag: tag.name == 'span' and 
                                     tag.get('class') == ['players']):
-                a_tags = j.find_all('a')
-                h1 = ''
-                a1 = ''
-                for z in a_tags:
-                    count += 1
-                    if (singles):
-                        if (count % 2 == 0):
-                            playerh.append(z.get_text().strip())
-                           # print('even')
+                    a_tags = k.find_all('a')
+                    if not a_tags:
+                        print(":///")
+                    z = ''
+                    for stuff in a_tags:
+                        if z == '':
+                            z = stuff.get_text().strip()
                         else:
-                            playera.append(z.get_text().strip())
-                           # print('odd')
+                            z = z + ', ' + stuff.get_text().strip()
+                    if (count % 2 == 0):
+                        playerh.append(z)
                     else:
-                        if (count % 4 == 0):
-                            h1 = z.get_text().strip() + ', '
-                        elif (count % 4 == 1):
-                            h1 = h1 + z.get_text().strip()
-                            playerh.append(h1)
-                            h1 = ''
-                        elif (count % 4 == 2):
-                            a1 = z.get_text().strip() + ', '
-                        else:
-                            a1 = a1 + z.get_text().strip()
-                            playera.append(a1)
-                            a1 = ''
+                        playera.append(z)
+            num = 0
             for j in i.find_all('div', class_ = 'column is-4 has-text-centered set-scores'):
-                scores.append(j.get_text().strip())
+                try:
+                    if (winner[num] == 'is-away'):
+                        scores.append(j.get_text().strip())
+                    else:
+                        scores.append(j.get_text().strip()[::-1])
+                    num += 1
+                except IndexError:
+                    print(':(')
             singles = False
     for ph, pa, score in zip(playerh, playera, scores):
         score = score.replace('-', ',')
