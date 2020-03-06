@@ -49,7 +49,27 @@ def getIndividuals(html):
     for i in html.find(lambda tag: tag.name == 'div' and tag.get('class') == ['content']).find_all('a', href=True):
         a.append(i['href'])
     return a
-
+def get_individual_names(html):
+    a = []
+    for i in html.find(lambda tag: tag.name == 'div' and tag.get('class') == ['content']).find_all('a'):
+        a.append(i.get_text().strip().replace('											', '').replace('\n', ' ').replace('                                                                         ', ' '))
+    return a
+def get_individuals_schools(url, csvfile):
+    html1 = BeautifulSoup(simple_get(url), 'html.parser')
+    a = []
+    for i in html1.find_all('a', class_ = 'media-content'):
+        a.append('http://azpreps365.com' + i['href'])
+    for i in a:
+        html2 = BeautifulSoup(simple_get(i), 'html.parser')
+        surl = 'http://azpreps365.com' + html2.find('div', class_ = 'tabs').find_all('li', class_ = 'menu-item')[0].a['href']
+        html3 = BeautifulSoup(simple_get(surl), 'html.parser')
+        rurl = 'http://azpreps365.com' + html3.find_all(lambda tag: tag.name == 'li' and tag.get('class') == [''])[-1].a['href']
+        print(rurl)
+        html4 = BeautifulSoup(simple_get(rurl), 'html.parser')
+        players = get_individual_names(html4)
+        school = html4.find('h1', class_='title').get_text().strip()
+        for j in players:
+            csvfile.write(f'{school}, {j}\n')
 def add_all(url, csvfile):
     html1 = BeautifulSoup(simple_get(url), 'html.parser')
     a = []
