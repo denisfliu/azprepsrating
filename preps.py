@@ -120,7 +120,7 @@ def match_collect(html, csvfile):
                         if z == '':
                             z = stuff.get_text().strip()
                         else:
-                            z = z + ', ' + stuff.get_text().strip()
+                            z = z + ',' + stuff.get_text().strip()
                     if (count % 2 == 0):
                         playerh.append(z)
                     else:
